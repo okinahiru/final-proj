@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Visualizing League of Legends Champion Data</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      .bar {
+        fill: steelblue;
+      }
+      .bar-label {
+        fill: white;
+        font: 10px sans-serif;
+        text-anchor: end;
+      }
+      .axis-label {
+        font: 14px sans-serif;
+      }
+      .blurb {
+        margin-bottom: 20px;
+      }
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .summary {
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title">Visualizing League of Legends Champion Data</div>
+    <div class="summary">
+      This page visualizes champion win rates by patch. (Writeup is at very
+      bottom).
+    </div>
+
+    <div class="blurb" id="first-blurb">
+      <p>
+        Below graph is a general graph showing win rates with role selection
+        functionality.
+      </p>
+    </div>
+
+    <label for="patch-select">Select Patch:</label>
+    <select id="patch-select"></select>
+    <label for="role-select">Select Role:</label>
+    <select id="role-select">
+      <option value="All">All Roles</option>
+    </select>
+    <div id="first-graph" style="height: 1500px"></div>
+
+    <div class="blurb" id="second-blurb">
+      <p>
+        Below graph will highlight a specific champion so that when the slider
+        moves the highlighted champion moves with it (shows meta
+        changes/buffs/nerfs).
+      </p>
+    </div>
+
+    <label for="patch-slider" style="display: block; margin-top: 20px"
+      >Select Patch:</label
+    >
+    <input
+      type="range"
+      id="patch-slider"
+      min="0"
+      max="100"
+      value="0"
+      style="width: 100%"
+    />
+    <div id="selected-patch" style="margin-top: 5px"></div>
+
+    <div class="search-container">
+      <label for="champion-search">Search Champion:</label>
+      <input
+        type="text"
+        id="champion-search"
+        placeholder="Enter champion name"
+      />
+    </div>
+
+    <div id="second-graph" style="height: 1500px"></div>
+
+    <div class="blurb" id="third-blurb">
+      <p>
+        Below graph will show champion classes between patches (shows champion
+        archetypes that are good or bad in solo queue for each patch).
+      </p>
+    </div>
+    <div id="third-graph" style="height: 1500px"></div>
+
+    <div class="blurb" id="fourth-blurb">
+      <p>
+        Below graphs aims to show champions which may be frustrating (high ban
+        rate low win rate).
+      </p>
+    </div>
+    <div id="fourth-graph" style="height: 1500px"></div>
+
+    <div class="blurb" id="writeup">
+      <p>
+        1. So far, I have made progress on sourcing data, as well as creating
+        two simple initial prototypes for some planned visualizations. The
+        functionality of the first visualization seems to more or less work
+        correctly, and the slider of the second also works. The search bar and
+        highlighting is a WIP. I have a general idea of the other two
+        visualizations I want to implement. I also have a good idea on what I
+        want each graph to look like. I have a skeleton HTML for further
+        implementation. I am also working on a method to scrape further data in
+        python. My current data is from these links:<br />
+        <br />
+        <a
+          href="https://www.kaggle.com/datasets/vivovinco/league-of-legends-stats-s13"
+          >https://www.kaggle.com/datasets/vivovinco/league-of-legends-stats-s13</a
+        ><br />
+        <a
+          href="https://www.kaggle.com/datasets/vivovinco/league-of-legends-champion-stats"
+          >https://www.kaggle.com/datasets/vivovinco/league-of-legends-champion-stats</a
+        >
+        <br />
+        The data from here comes from metasrc.com, a website which includes
+        further data from other patches not included in these two datasets.
+        Potentially, it would be cool to include all available patches in the
+        future.
+      </p>
+      <p>
+        2. I want to try my hand at adding a visualization showing the highest
+        winrate champion of a role on a map of the game (so if Urgot is the
+        highest winrate in the top lane, I want to have a little bubble with his
+        pictures pointing at the top lane). Either way, adding animations and
+        making the website look and run smoother is probably going to be the
+        most challenging part of the design. For example, for the highlighted
+        slider, I want the bars to shift smoothly while the slider moves, so
+        that the highlighted bar of the champion can be followed with the eyes.
+        In order to communicate that a champion should be selected, all bars
+        should have their opacity lowered before a champion is selected and
+        highlighted (opacity back to 1).
+      </p>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
