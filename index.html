@@ -4,9 +4,6 @@
     <title>Visualizing League of Legends Champion Data</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-      .bar {
-        fill: steelblue;
-      }
       .bar-label {
         fill: white;
         font: 10px sans-serif;
@@ -26,6 +23,62 @@
       .summary {
         font-size: 16px;
         margin-bottom: 10px;
+      }
+      .grid line {
+        stroke: lightgrey;
+        stroke-opacity: 0.7;
+        shape-rendering: crispEdges;
+      }
+      .grid path {
+        stroke-width: 0;
+      }
+      #first-graph,
+      #second-graph,
+      #third-graph,
+      #fourth-graph {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      :root {
+        --background-color: #333; /* Dark background */
+        --text-color: #fff; /* Light text */
+        --border-color: #444; /* Darker borders for elements */
+      }
+
+      body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+      }
+
+      .bar-label,
+      .axis-label {
+        fill: var(--text-color);
+      }
+
+      .grid line {
+        stroke: var(--border-color);
+        stroke-opacity: 0.7;
+        shape-rendering: crispEdges;
+      }
+
+      .grid path {
+        stroke-width: 0;
+      }
+
+      .slider {
+        background-color: #555; /* Slider background in dark mode */
+      }
+
+      input:checked + .slider {
+        background-color: #777; /* Slider background when active in dark mode */
+      }
+
+      #tooltip {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        border-color: var(--border-color);
       }
     </style>
   </head>
@@ -60,7 +113,7 @@
     </div>
 
     <label for="patch-slider" style="display: block; margin-top: 20px"
-      >Select Patch:</label
+      >Select Patch for Classes:</label
     >
     <input
       type="range"
@@ -72,14 +125,13 @@
     />
     <div id="selected-patch" style="margin-top: 5px"></div>
 
-    <div class="search-container">
-      <label for="champion-search">Search Champion:</label>
-      <input
-        type="text"
-        id="champion-search"
-        placeholder="Enter champion name"
-      />
-    </div>
+    <input
+      type="text"
+      id="champion-search"
+      list="champions-datalist"
+      placeholder="Enter champion name"
+    />
+    <datalist id="champions-datalist"></datalist>
 
     <div id="second-graph" style="height: 1500px"></div>
 
@@ -89,7 +141,20 @@
         archetypes that are good or bad in solo queue for each patch).
       </p>
     </div>
-    <div id="third-graph" style="height: 1500px"></div>
+    <label for="patch-slider-third" style="display: block; margin-top: 20px"
+      >Select Patch for Classes:</label
+    >
+    <input
+      type="range"
+      id="patch-slider-third"
+      min="0"
+      max="100"
+      value="0"
+      style="width: 100%"
+    />
+    <div id="selected-patch-third" style="margin-top: 5px"></div>
+
+    <div id="third-graph" style="height: 500px"></div>
 
     <div class="blurb" id="fourth-blurb">
       <p>
@@ -97,7 +162,35 @@
         rate low win rate).
       </p>
     </div>
-    <div id="fourth-graph" style="height: 1500px"></div>
+
+    <label for="patch-slider-fourth" style="display: block; margin-top: 20px"
+      >Select Patch for Classes:</label
+    >
+    <input
+      type="range"
+      id="patch-slider-fourth"
+      min="0"
+      max="100"
+      value="0"
+      style="width: 100%"
+    />
+    <div id="selected-patch-fourth" style="margin-top: 5px"></div>
+
+    <div
+      id="tooltip"
+      style="
+        position: absolute;
+        visibility: hidden;
+        padding: 10px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: left;
+        pointer-events: none;
+      "
+    ></div>
+
+    <div id="fourth-graph" style="height: 1000px"></div>
 
     <div class="blurb" id="writeup">
       <p>
