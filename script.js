@@ -265,14 +265,13 @@ function drawFourthGraph(selectedPatch) {
   d3.csv("data/data.csv").then(function (data) {
     const filteredData = data.filter((d) => d.Patch === selectedPatch);
 
-    // Compute aggregated data for weighted averages
     const aggregatedData = d3.rollup(
       filteredData,
       (v) => ({
         avgWinRate: d3.mean(v, (d) => parseFloat(d["Win %"])),
         avgBanRate: d3.mean(v, (d) => parseFloat(d["Ban %"])),
       }),
-      (d) => d.Name // Assuming you want to group by champion name
+      (d) => d.Name
     );
 
     const processedData = Array.from(aggregatedData, ([name, values]) => ({
@@ -380,9 +379,8 @@ function initializeGlobalPatchSlider() {
       "global-selected-patch"
     );
     globalPatchSlider.max = patches.length - 1;
-    globalPatchSlider.value = 0; // Default to the first patch, adjust as needed
+    globalPatchSlider.value = 0;
 
-    // Initialize role dropdown
     const roles = Array.from(new Set(data.map((d) => d.Role))).sort();
     const roleSelect = d3.select("#role-select");
     roleSelect
@@ -393,30 +391,27 @@ function initializeGlobalPatchSlider() {
       .text((d) => d)
       .attr("value", (d) => d);
 
-    // Update graphs and suggestions on initial load and on slider change
     const updateContent = () => {
       const selectedPatch = patches[globalPatchSlider.value];
       selectedPatchDisplay.textContent = `Selected Patch: ${selectedPatch}`;
       updateAllGraphs(selectedPatch);
-      populateChampionSuggestions(selectedPatch); // For the second graph's champion search functionality
+      populateChampionSuggestions(selectedPatch);
     };
 
-    updateContent(); // For initial load
+    updateContent();
 
-    const debouncedUpdate = debounce(updateContent, 100); // 100ms debounce time
+    const debouncedUpdate = debounce(updateContent, 100);
     globalPatchSlider.oninput = debouncedUpdate;
 
-    // Event listener for role dropdown changes
     roleSelect.on("change", function () {
       const selectedPatch = patches[globalPatchSlider.value];
       const selectedRole = this.value;
-      drawFirstGraph(selectedPatch, selectedRole); // Only update the first graph as it's role-specific
+      drawFirstGraph(selectedPatch, selectedRole);
     });
 
-    // Champion search functionality (from your existing code)
     const searchInput = document.getElementById("champion-search");
     searchInput.addEventListener("change", function () {
-      selectedChampion = this.value; // Assuming 'selectedChampion' is globally accessible
+      selectedChampion = this.value;
       const selectedPatch = patches[globalPatchSlider.value];
       drawSecondGraph(selectedPatch, selectedChampion);
     });
@@ -432,12 +427,11 @@ function initializeGlobalPatchSlider() {
 }
 
 function updateAllGraphs(selectedPatch) {
-  const selectedRole = document.getElementById("role-select").value; // Retrieve the currently selected role
-  drawFirstGraph(selectedPatch, selectedRole); // Update first graph based on selected patch and role
-  drawSecondGraph(selectedPatch, selectedChampion); // Second graph
-  drawThirdGraph(selectedPatch); // Third graph
-  drawFourthGraph(selectedPatch); // Fourth graph
+  const selectedRole = document.getElementById("role-select").value;
+  drawFirstGraph(selectedPatch, selectedRole);
+  drawSecondGraph(selectedPatch, selectedChampion);
+  drawThirdGraph(selectedPatch);
+  drawFourthGraph(selectedPatch);
 }
 
-// Initialize the global patch slider which updates all graphs
 initializeGlobalPatchSlider();

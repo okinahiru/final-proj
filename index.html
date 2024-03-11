@@ -42,9 +42,9 @@
       }
 
       :root {
-        --background-color: #333; /* Dark background */
-        --text-color: #fff; /* Light text */
-        --border-color: #444; /* Darker borders for elements */
+        --background-color: #333;
+        --text-color: #fff;
+        --border-color: #444;
       }
 
       body {
@@ -69,11 +69,11 @@
       }
 
       .slider {
-        background-color: #555; /* Slider background in dark mode */
+        background-color: #555;
       }
 
       input:checked + .slider {
-        background-color: #777; /* Slider background when active in dark mode */
+        background-color: #777;
       }
 
       #tooltip {
@@ -83,13 +83,13 @@
       }
       #slider-container {
         position: fixed;
-        top: 0; /* Adjust this value to position the slider from the top of the viewport */
-        left: 0; /* Adjust this to align the slider as needed */
-        width: 100%; /* This makes the slider container span the full width */
-        background-color: #1b1b1b; /* Change this as needed to match your site's theme */
-        z-index: 1000; /* Ensures the slider is above most other content */
-        padding: 10px 0; /* Add some padding for aesthetic spacing */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: adds a shadow for better visual separation */
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #1b1b1b;
+        z-index: 1000;
+        padding: 10px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
     </style>
   </head>
@@ -99,7 +99,6 @@
       This page visualizes champion win rates by patch. (Writeup is at very
       bottom).
     </div>
-    <!-- Place this in a central part of your HTML document -->
     <div id="slider-container">
       <label for="global-patch-slider">Select Patch:</label>
       <input
