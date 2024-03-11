@@ -50,6 +50,7 @@
       body {
         background-color: var(--background-color);
         color: var(--text-color);
+        padding-top: 100px;
       }
 
       .bar-label,
@@ -80,6 +81,16 @@
         color: var(--text-color);
         border-color: var(--border-color);
       }
+      #slider-container {
+        position: fixed;
+        top: 0; /* Adjust this value to position the slider from the top of the viewport */
+        left: 0; /* Adjust this to align the slider as needed */
+        width: 100%; /* This makes the slider container span the full width */
+        background-color: #1b1b1b; /* Change this as needed to match your site's theme */
+        z-index: 1000; /* Ensures the slider is above most other content */
+        padding: 10px 0; /* Add some padding for aesthetic spacing */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: adds a shadow for better visual separation */
+      }
     </style>
   </head>
   <body>
@@ -87,6 +98,19 @@
     <div class="summary">
       This page visualizes champion win rates by patch. (Writeup is at very
       bottom).
+    </div>
+    <!-- Place this in a central part of your HTML document -->
+    <div id="slider-container">
+      <label for="global-patch-slider">Select Patch:</label>
+      <input
+        type="range"
+        id="global-patch-slider"
+        min="0"
+        max="100"
+        value="0"
+        style="width: 100%"
+      />
+      <div id="global-selected-patch" style="margin-top: 5px"></div>
     </div>
 
     <div class="blurb" id="first-blurb">
@@ -96,13 +120,11 @@
       </p>
     </div>
 
-    <label for="patch-select">Select Patch:</label>
-    <select id="patch-select"></select>
     <label for="role-select">Select Role:</label>
     <select id="role-select">
       <option value="All">All Roles</option>
     </select>
-    <div id="first-graph" style="height: 1500px"></div>
+    <div id="first-graph" style="height: 1300px"></div>
 
     <div class="blurb" id="second-blurb">
       <p>
@@ -112,19 +134,6 @@
       </p>
     </div>
 
-    <label for="patch-slider" style="display: block; margin-top: 20px"
-      >Select Patch for Classes:</label
-    >
-    <input
-      type="range"
-      id="patch-slider"
-      min="0"
-      max="100"
-      value="0"
-      style="width: 100%"
-    />
-    <div id="selected-patch" style="margin-top: 5px"></div>
-
     <input
       type="text"
       id="champion-search"
@@ -133,7 +142,7 @@
     />
     <datalist id="champions-datalist"></datalist>
 
-    <div id="second-graph" style="height: 1500px"></div>
+    <div id="second-graph" style="height: 1300px"></div>
 
     <div class="blurb" id="third-blurb">
       <p>
@@ -141,18 +150,6 @@
         archetypes that are good or bad in solo queue for each patch).
       </p>
     </div>
-    <label for="patch-slider-third" style="display: block; margin-top: 20px"
-      >Select Patch for Classes:</label
-    >
-    <input
-      type="range"
-      id="patch-slider-third"
-      min="0"
-      max="100"
-      value="0"
-      style="width: 100%"
-    />
-    <div id="selected-patch-third" style="margin-top: 5px"></div>
 
     <div id="third-graph" style="height: 500px"></div>
 
@@ -162,19 +159,6 @@
         rate low win rate).
       </p>
     </div>
-
-    <label for="patch-slider-fourth" style="display: block; margin-top: 20px"
-      >Select Patch for Classes:</label
-    >
-    <input
-      type="range"
-      id="patch-slider-fourth"
-      min="0"
-      max="100"
-      value="0"
-      style="width: 100%"
-    />
-    <div id="selected-patch-fourth" style="margin-top: 5px"></div>
 
     <div
       id="tooltip"

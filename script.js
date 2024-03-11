@@ -11,6 +11,22 @@ function sortPatches(patches) {
   });
 }
 
+function debounce(func, wait, immediate) {
+  var timeout;
+  return function () {
+    var context = this,
+      args = arguments;
+    var later = function () {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    var callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+}
+
 // FIRST GRAPH ----------------------------------------------
 function drawFirstGraph(patch, role) {
   d3.select("#first-graph").selectAll("*").remove();
@@ -36,7 +52,7 @@ function drawFirstGraph(patch, role) {
 
     const margin = { top: 20, right: 20, bottom: 30, left: 100 },
       width = 1200 - margin.left - margin.right,
-      height = 1500 - margin.top - margin.bottom;
+      height = 1300 - margin.top - margin.bottom;
 
     const x = d3.scaleLinear().range([0, width]);
     const y = d3.scaleBand().range([height, 0]).padding(0.1);
@@ -81,42 +97,6 @@ function drawFirstGraph(patch, role) {
   });
 }
 
-function initializeFirst() {
-  d3.csv("data/data.csv").then((data) => {
-    let patches = Array.from(new Set(data.map((d) => d.Patch)));
-    patches = sortPatches(patches);
-
-    const select = d3.select("#patch-select");
-    select
-      .selectAll("option")
-      .data(patches)
-      .enter()
-      .append("option")
-      .text((d) => d)
-      .attr("value", (d) => d);
-
-    const roles = Array.from(new Set(data.map((d) => d.Role))).sort();
-    const roleSelect = d3.select("#role-select");
-    roleSelect
-      .selectAll("option")
-      .data(["All", ...roles])
-      .enter()
-      .append("option")
-      .text((d) => d)
-      .attr("value", (d) => d);
-
-    drawFirstGraph(patches[0], "All");
-
-    d3.select("#patch-select").on("change", function () {
-      drawFirstGraph(this.value, d3.select("#role-select").node().value);
-    });
-
-    d3.select("#role-select").on("change", function () {
-      drawFirstGraph(d3.select("#patch-select").node().value, this.value);
-    });
-  });
-}
-
 // SECOND GRAPH-------------------------------------------------
 
 let selectedChampion = "";
@@ -145,7 +125,7 @@ function drawSecondGraph(patch, championName = "") {
 
     const margin = { top: 20, right: 20, bottom: 30, left: 100 },
       width = 1200 - margin.left - margin.right,
-      height = 1500 - margin.top - margin.bottom;
+      height = 1300 - margin.top - margin.bottom;
 
     const x = d3.scaleLinear().range([0, width]);
     const y = d3.scaleBand().range([height, 0]).padding(0.1);
@@ -194,21 +174,6 @@ function drawSecondGraph(patch, championName = "") {
       .text((d) => d.avgWinRate.toFixed(2));
   });
 }
-function debounce(func, wait, immediate) {
-  var timeout;
-  return function () {
-    var context = this,
-      args = arguments;
-    var later = function () {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    var callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) func.apply(context, args);
-  };
-}
 
 function populateChampionSuggestions(patch) {
   const dataList = document.getElementById("champions-datalist");
@@ -225,41 +190,6 @@ function populateChampionSuggestions(patch) {
       const option = document.createElement("option");
       option.value = champion;
       dataList.appendChild(option);
-    });
-  });
-}
-
-function initializeSecond() {
-  d3.csv("data/data.csv").then((data) => {
-    let patches = Array.from(new Set(data.map((d) => d.Patch))).sort();
-    patches = sortPatches(patches);
-    const patchSlider = document.getElementById("patch-slider");
-    patchSlider.max = patches.length - 1;
-
-    populateChampionSuggestions(patches[0]);
-    drawSecondGraph(patches[0], selectedChampion);
-
-    const debouncedDraw = debounce(function () {
-      const selectedPatch = patches[this.value];
-      populateChampionSuggestions(selectedPatch);
-      drawSecondGraph(selectedPatch, selectedChampion);
-    }, 100);
-
-    patchSlider.oninput = debouncedDraw;
-
-    const searchInput = document.getElementById("champion-search");
-    searchInput.addEventListener("change", function () {
-      selectedChampion = this.value;
-      const selectedPatch = patches[patchSlider.value];
-      drawSecondGraph(selectedPatch, selectedChampion);
-    });
-
-    searchInput.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        selectedChampion = this.value;
-        const selectedPatch = patches[patchSlider.value];
-        drawSecondGraph(selectedPatch, selectedChampion);
-      }
     });
   });
 }
@@ -328,33 +258,28 @@ function drawThirdGraph(patch) {
   });
 }
 
-function initializeThird() {
-  d3.csv("data/data.csv").then((data) => {
-    let patches = Array.from(new Set(data.map((d) => d.Patch))).sort();
-    patches = sortPatches(patches);
-    const patchSliderThird = document.getElementById("patch-slider-third");
-    patchSliderThird.max = patches.length - 1;
-    const selectedPatchDisplayThird = document.getElementById(
-      "selected-patch-third"
-    );
-
-    drawThirdGraph(patches[0]);
-    selectedPatchDisplayThird.textContent = `Selected Patch: ${patches[0]}`;
-
-    patchSliderThird.oninput = function () {
-      const selectedPatch = patches[this.value];
-      drawThirdGraph(selectedPatch);
-      selectedPatchDisplayThird.textContent = `Selected Patch: ${selectedPatch}`;
-    };
-  });
-}
-
 // FOURTH GRAPH-------------------------------------------------
 
 function drawFourthGraph(selectedPatch) {
   d3.select("#fourth-graph").selectAll("*").remove();
   d3.csv("data/data.csv").then(function (data) {
     const filteredData = data.filter((d) => d.Patch === selectedPatch);
+
+    // Compute aggregated data for weighted averages
+    const aggregatedData = d3.rollup(
+      filteredData,
+      (v) => ({
+        avgWinRate: d3.mean(v, (d) => parseFloat(d["Win %"])),
+        avgBanRate: d3.mean(v, (d) => parseFloat(d["Ban %"])),
+      }),
+      (d) => d.Name // Assuming you want to group by champion name
+    );
+
+    const processedData = Array.from(aggregatedData, ([name, values]) => ({
+      Name: name,
+      avgWinRate: values.avgWinRate,
+      avgBanRate: values.avgBanRate,
+    }));
 
     const margin = { top: 20, right: 20, bottom: 30, left: 40 },
       width = 1000 - margin.left - margin.right,
@@ -370,25 +295,25 @@ function drawFourthGraph(selectedPatch) {
 
     const x = d3
       .scaleLinear()
-      .domain([0, d3.max(filteredData, (d) => parseFloat(d["Ban %"]))])
+      .domain([0, d3.max(processedData, (d) => d.avgBanRate)])
       .range([0, width]);
 
     const y = d3
       .scaleLinear()
       .domain([
-        d3.min(filteredData, (d) => parseFloat(d["Win %"])) * 0.95,
-        d3.max(filteredData, (d) => parseFloat(d["Win %"])) * 1.05,
+        d3.min(processedData, (d) => d.avgWinRate) * 0.95,
+        d3.max(processedData, (d) => d.avgWinRate) * 1.05,
       ])
       .range([height, 0]);
 
     svg
       .selectAll("dot")
-      .data(filteredData)
+      .data(processedData)
       .enter()
       .append("circle")
       .attr("r", 5)
-      .attr("cx", (d) => x(parseFloat(d["Ban %"])))
-      .attr("cy", (d) => y(parseFloat(d["Win %"])))
+      .attr("cx", (d) => x(d.avgBanRate))
+      .attr("cy", (d) => y(d.avgWinRate))
       .style("fill", "#D62728");
 
     svg
@@ -410,19 +335,18 @@ function drawFourthGraph(selectedPatch) {
 
     svg
       .selectAll("dot")
-      .data(filteredData)
+      .data(processedData)
       .enter()
       .append("circle")
       .attr("r", 5)
-      .attr("cx", (d) => x(parseFloat(d["Ban %"])))
-      .attr("cy", (d) => y(parseFloat(d["Win %"])))
+      .attr("cx", (d) => x(d.avgBanRate))
+      .attr("cy", (d) => y(d.avgWinRate))
       .style("fill", "steelblue")
       .on("mouseover", function (event, d) {
+        const html = `Champion: ${d.Name}<br>Win Rate: ${d.avgWinRate}%<br>Ban Rate: ${d.avgBanRate}%`;
         tooltip
           .style("visibility", "visible")
-          .html(
-            `Champion: ${d.Name}<br>Win Rate: ${d["Win %"]}%<br>Ban Rate: ${d["Ban %"]}%`
-          )
+          .html(html)
           .style("top", event.pageY - 10 + "px")
           .style("left", event.pageX + 10 + "px");
       })
@@ -444,73 +368,76 @@ function drawFourthGraph(selectedPatch) {
   });
 }
 
-function initializeFourth() {
-  const patchSlider = document.getElementById("patch-slider-fourth");
-  const selectedPatchDisplay = document.getElementById("selected-patch-fourth");
+// Overall ---------------------------------------------------------
 
+function initializeGlobalPatchSlider() {
   d3.csv("data/data.csv").then((data) => {
     let patches = Array.from(new Set(data.map((d) => d.Patch)));
     patches = sortPatches(patches);
 
-    patchSlider.max = patches.length - 1;
-    patchSlider.value = 0;
+    const globalPatchSlider = document.getElementById("global-patch-slider");
+    const selectedPatchDisplay = document.getElementById(
+      "global-selected-patch"
+    );
+    globalPatchSlider.max = patches.length - 1;
+    globalPatchSlider.value = 0; // Default to the first patch, adjust as needed
 
-    drawFourthGraph(patches[0]);
-    selectedPatchDisplay.textContent = `Selected Patch: ${patches[0]}`;
+    // Initialize role dropdown
+    const roles = Array.from(new Set(data.map((d) => d.Role))).sort();
+    const roleSelect = d3.select("#role-select");
+    roleSelect
+      .selectAll("option")
+      .data(["All", ...roles])
+      .enter()
+      .append("option")
+      .text((d) => d)
+      .attr("value", (d) => d);
 
-    patchSlider.oninput = function () {
-      const selectedPatch = patches[this.value];
-      drawFourthGraph(selectedPatch);
+    // Update graphs and suggestions on initial load and on slider change
+    const updateContent = () => {
+      const selectedPatch = patches[globalPatchSlider.value];
       selectedPatchDisplay.textContent = `Selected Patch: ${selectedPatch}`;
+      updateAllGraphs(selectedPatch);
+      populateChampionSuggestions(selectedPatch); // For the second graph's champion search functionality
     };
+
+    updateContent(); // For initial load
+
+    const debouncedUpdate = debounce(updateContent, 100); // 100ms debounce time
+    globalPatchSlider.oninput = debouncedUpdate;
+
+    // Event listener for role dropdown changes
+    roleSelect.on("change", function () {
+      const selectedPatch = patches[globalPatchSlider.value];
+      const selectedRole = this.value;
+      drawFirstGraph(selectedPatch, selectedRole); // Only update the first graph as it's role-specific
+    });
+
+    // Champion search functionality (from your existing code)
+    const searchInput = document.getElementById("champion-search");
+    searchInput.addEventListener("change", function () {
+      selectedChampion = this.value; // Assuming 'selectedChampion' is globally accessible
+      const selectedPatch = patches[globalPatchSlider.value];
+      drawSecondGraph(selectedPatch, selectedChampion);
+    });
+
+    searchInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        selectedChampion = this.value;
+        const selectedPatch = patches[globalPatchSlider.value];
+        drawSecondGraph(selectedPatch, selectedChampion);
+      }
+    });
   });
 }
 
 function updateAllGraphs(selectedPatch) {
-  drawFirstGraph(selectedPatch, document.getElementById("role-select").value);
-  drawSecondGraph(selectedPatch, selectedChampion);
-  drawThirdGraph(selectedPatch);
-  drawFourthGraph(selectedPatch);
+  const selectedRole = document.getElementById("role-select").value; // Retrieve the currently selected role
+  drawFirstGraph(selectedPatch, selectedRole); // Update first graph based on selected patch and role
+  drawSecondGraph(selectedPatch, selectedChampion); // Second graph
+  drawThirdGraph(selectedPatch); // Third graph
+  drawFourthGraph(selectedPatch); // Fourth graph
 }
 
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    const context = this;
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(context, args), wait);
-  };
-}
-
-function initializePatchSlider() {
-  d3.csv("data/data.csv").then((data) => {
-    let patches = Array.from(new Set(data.map((d) => d.Patch)));
-    patches = sortPatches(patches);
-
-    const patchSlider = document.getElementById("patch-slider");
-    const selectedPatchDisplay = document.getElementById("selected-patch");
-
-    patchSlider.max = patches.length - 1;
-    patchSlider.value = patches.length - 1;
-
-    const debouncedUpdateAllGraphs = debounce(function (selectedPatch) {
-      updateAllGraphs(selectedPatch);
-      selectedPatchDisplay.textContent = `Selected Patch: ${selectedPatch}`;
-    }, 100);
-
-    const initialPatch = patches[patchSlider.value];
-    updateAllGraphs(initialPatch);
-    selectedPatchDisplay.textContent = `Selected Patch: ${initialPatch}`;
-
-    patchSlider.oninput = function () {
-      const selectedPatch = patches[this.value];
-      debouncedUpdateAllGraphs(selectedPatch);
-    };
-  });
-}
-
-// initializePatchSlider();
-initializeFirst();
-initializeSecond();
-initializeThird();
-initializeFourth();
+// Initialize the global patch slider which updates all graphs
+initializeGlobalPatchSlider();
