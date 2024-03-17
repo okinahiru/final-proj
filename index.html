@@ -3,104 +3,78 @@
   <head>
     <title>Visualizing League of Legends Champion Data</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      .bar-label {
-        fill: white;
-        font: 10px sans-serif;
-        text-anchor: end;
-      }
-      .axis-label {
-        font: 14px sans-serif;
-      }
-      .blurb {
-        margin-bottom: 20px;
-      }
-      .title {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 10px;
-      }
-      .summary {
-        font-size: 16px;
-        margin-bottom: 10px;
-      }
-      .grid line {
-        stroke: lightgrey;
-        stroke-opacity: 0.7;
-        shape-rendering: crispEdges;
-      }
-      .grid path {
-        stroke-width: 0;
-      }
-      #first-graph,
-      #second-graph,
-      #third-graph,
-      #fourth-graph {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      :root {
-        --background-color: #333;
-        --text-color: #fff;
-        --border-color: #444;
-      }
-
       body {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        padding-top: 100px;
-      }
-
-      .bar-label,
-      .axis-label {
-        fill: var(--text-color);
-      }
-
-      .grid line {
-        stroke: var(--border-color);
-        stroke-opacity: 0.7;
-        shape-rendering: crispEdges;
-      }
-
-      .grid path {
-        stroke-width: 0;
-      }
-
-      .slider {
-        background-color: #555;
-      }
-
-      input:checked + .slider {
-        background-color: #777;
-      }
-
-      #tooltip {
-        background-color: var(--background-color);
-        color: var(--text-color);
-        border-color: var(--border-color);
-      }
-      #slider-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: #1b1b1b;
-        z-index: 1000;
-        padding: 10px 0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-family: "Roboto", sans-serif;
       }
     </style>
   </head>
   <body>
-    <div class="title">Visualizing League of Legends Champion Data</div>
-    <div class="summary">
-      This page visualizes champion win rates by patch. (Writeup is at very
-      bottom).
+    <div class="title">Is League of Legends Actually Balanced?</div>
+    <div class="me" style="text-align: center">Joshua Li</div>
+
+    <div class="summary" style="margin: 0 100px">
+      <p>
+        In the high-stakes world of League of Legends, emotions run hot. Fueling
+        these frustrations are popular stat-tracking websites like OP.GG or
+        Meta.src, which categorize champions with sensational labels such as
+        "God tier" or "OP (Overpowered)." Imagine losing a hard-fought game due
+        to the enemy Akali, then going online to find that everywhere you look,
+        Akali is said to be "overpowered" or "unbalanced". This has led to a
+        highly charged community atmosphere where players do not hesitate to
+        direct their ire towards the developers, who they view to be incompetent
+        or even malicious, sometimes going to the extreme of issuing death
+        threats and pushing individuals (like Design Lead Riot Phreak) off
+        social media platforms.
+      </p>
+      <div class="content-wrapper" style="text-align: center">
+        <div style="margin: auto; max-width: 560px; overflow: hidden">
+          <iframe
+            style="width: 100%; height: 315px"
+            src="https://www.youtube.com/embed/fW69GYmiHBM"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+      <p>
+        The video above captures Showmaker, a top-level professional player,
+        expressing frustration over K'Sante, a champion he perceives as
+        overpowered. This sentiment is not uncommon among players, highlighting
+        that even those at the pinnacle of play are not immune to the game's
+        balancing debates. Video credit goes to the YouTube channel
+        <a href="https://www.youtube.com/@theramscales" style="color: #9ecfff"
+          >@theramscales</a
+        >
+        and Showmaker for the original clip.
+      </p>
+      <p>
+        Despite the prevalent narrative of imbalance and frustration, an
+        in-depth analysis of game data tells a different story. Could it be that
+        League of Legends is more balanced than players give it credit for? By
+        examining win rates, pick rates, and ban rates across different patches
+        and comparing them with player perceptions, this visualization aims to
+        demonstrate the game's balance beyond the veil of emotion and
+        sensationalism.
+      </p>
+      <p style="text-decoration: underline">
+        Every graph on this page can be controlled with the patch slider seen at
+        the top. It shows data from patch 12.1 (1/4/22) to 13.13 (6/27/23).
+      </p>
     </div>
-    <div id="slider-container">
-      <label for="global-patch-slider">Select Patch:</label>
+
+    <div id="slider-container" style="text-align: center">
+      <label
+        for="global-patch-slider"
+        style="width: 150px; display: inline-block"
+        >SELECT PATCH:</label
+      >
       <input
         type="range"
         id="global-patch-slider"
@@ -112,51 +86,124 @@
       <div id="global-selected-patch" style="margin-top: 5px"></div>
     </div>
 
-    <div class="blurb" id="first-blurb">
+    <div class="section" style="margin: 0 100px">
+      General Champion Win Rates
+    </div>
+
+    <div class="blurb" id="first-blurb" style="margin: 0 100px">
       <p>
-        Below graph is a general graph showing win rates with role selection
-        functionality.
+        This visualization strips away the sensationalism of popular League
+        stats sites to offer an objective look at champion performance, patch by
+        patch, role by role. While others might slap on labels like "OP" or
+        "Godly" based on tiers or public sentiment, we dive into the data to
+        uncover the truth about so-called overpowered champions.
+      </p>
+      <p>
+        Take patch 13.13, for instance. Champions such as Aatrox, Kayn, Kai'Sa,
+        and Graves are hailed as "God tier" by many. Then there's Yone, Yasuo,
+        and Riven—heroes I've personally grumbled about as being overly dominant
+        in the hands of skilled players. But do the numbers back up their
+        fearsome reputations? Surprisingly, it's often the under-the-radar,
+        "boring" champions like Taric or Rell who quietly excel without fanfare.
+        Other champions like Azir or Ryze commonly have terrible winrates, as
+        their champion designs lend them to be far better in the team oriented
+        environment of pro play. Delve into the graph and see for yourself which
+        champions truly deserve their notorious labels, and which ones are just
+        misunderstood underdogs.
       </p>
     </div>
 
-    <label for="role-select">Select Role:</label>
-    <select id="role-select">
-      <option value="All">All Roles</option>
-    </select>
-    <div id="first-graph" style="height: 1300px"></div>
+    <div style="text-align: center">
+      <label for="role-select">SELECT ROLE:</label>
+      <select id="role-select">
+        <option value="All">ALL ROLES</option>
+      </select>
+    </div>
 
-    <div class="blurb" id="second-blurb">
+    <div id="first-graph" style="height: 1500px"></div>
+
+    <div class="section" style="margin: 0 100px">Changes over Patches</div>
+
+    <div class="blurb" id="second-blurb" style="margin: 0 100px">
       <p>
-        Below graph will highlight a specific champion so that when the slider
-        moves the highlighted champion moves with it (shows meta
-        changes/buffs/nerfs).
+        Dive into the ever-changing world of League of Legends with our
+        interactive graph, which tracks the journey of champions across patches.
+        Utilize the slider to observe the impact of game updates, including
+        buffs and nerfs, on individual champions. This feature offers a dynamic
+        look at the shifting tides of champions' win rates, providing insights
+        into their adaptability and resilience within the meta.
+      </p>
+      <p>
+        Discover the real story behind champions that oscillate between being
+        labeled as "unstoppable" and those unexpectedly rising in strength. This
+        exploration challenges prevailing notions of "OP" and "weak" champions,
+        offering a more nuanced perspective on the game's balance. For players
+        like myself, who main champions like Vayne and Nidalee that often fly
+        under the radar in patch notes, it's a chance to see how our favorites
+        truly fare over time, untouched by the controversies or the spotlight.
       </p>
     </div>
 
-    <input
-      type="text"
-      id="champion-search"
-      list="champions-datalist"
-      placeholder="Enter champion name"
-    />
-    <datalist id="champions-datalist"></datalist>
+    <div style="text-align: center">
+      <input
+        type="text"
+        id="champion-search"
+        list="champions-datalist"
+        placeholder="Enter champion name"
+      />
+      <datalist id="champions-datalist"></datalist>
+    </div>
 
-    <div id="second-graph" style="height: 1300px"></div>
+    <div id="second-graph" style="height: 1500px"></div>
 
-    <div class="blurb" id="third-blurb">
+    <div class="section" style="margin: 0 100px">Archetype Win Rates</div>
+
+    <div class="blurb" id="third-blurb" style="margin: 0 100px">
       <p>
-        Below graph will show champion classes between patches (shows champion
-        archetypes that are good or bad in solo queue for each patch).
+        League's ever-shifting meta brings its own set of challenges and
+        frustrations, particularly evident in the performance trends of champion
+        classes across patches. This graph provides a snapshot of these
+        dynamics, revealing which archetypes excel or falter in solo queue's
+        unpredictable environment. As a marksman player, I've often felt at the
+        mercy of the current meta, with my impact on the game's outcome feeling
+        diminished against the lethal damage output of assassins and fighters.
+        Yet I also remember the days of Season 9 (2019), where the slow moving
+        meta favored my archetypes playstyle, allowing me to thrive. This
+        visualization offers a broader perspective on such experiences, showing
+        how each class's fortunes rise and fall with the meta, and reflecting
+        the ongoing struggle for balance and player satisfaction.
       </p>
     </div>
 
     <div id="third-graph" style="height: 500px"></div>
 
-    <div class="blurb" id="fourth-blurb">
-      <p>
-        Below graphs aims to show champions which may be frustrating (high ban
-        rate low win rate).
-      </p>
+    <div class="section" style="margin: 0 100px">
+      Disproportionately Frustating Champions (High Ban Rate vs Win Rate)
+    </div>
+
+    <div class="blurb" id="fourth-blurb" style="margin: 0 100px">
+      <div class="blurb" id="fourth-blurb">
+        <p>
+          League of Legends teems with champions that elicit groans across the
+          Rift, not for their win rate, but for the sheer frustration of playing
+          against them. This graph illuminates the curious case of champions
+          like Miss Fortune, Seraphine, and Malzahar—personal ban choices of
+          mine due to their uninteractive playstyles. Despite their frequent
+          bans, these champions don't necessarily dominate in terms of victory,
+          hinting at the psychological warfare embedded within champion
+          selection.
+        </p>
+        <p>
+          Riot August once revealed an intentional design choice: keeping
+          champions like Zed weaker to mitigate their ban frequency, owing to
+          the universal dread they inspire. This strategy is evident in Zed's
+          persistently high ban rate coupled with a sub-50% win rate. This
+          visualization challenges us to reassess our biases and confront the
+          real impact of perceived strength versus statistical reality. It's an
+          invitation to peel back the layers of League's meta, exploring how
+          fear and annoyance shape the game far beyond the raw numbers.
+        </p>
+      </div>
     </div>
 
     <div
@@ -175,45 +222,65 @@
 
     <div id="fourth-graph" style="height: 1000px"></div>
 
-    <div class="blurb" id="writeup">
+    <div class="section" style="margin: 0 100px">Takeaway</div>
+
+    <div class="takeaway" style="margin: 0 100px">
       <p>
-        1. So far, I have made progress on sourcing data, as well as creating
-        two simple initial prototypes for some planned visualizations. The
-        functionality of the first visualization seems to more or less work
-        correctly, and the slider of the second also works. The search bar and
-        highlighting is a WIP. I have a general idea of the other two
-        visualizations I want to implement. I also have a good idea on what I
-        want each graph to look like. I have a skeleton HTML for further
-        implementation. I am also working on a method to scrape further data in
-        python. My current data is from these links:<br />
-        <br />
-        <a
-          href="https://www.kaggle.com/datasets/vivovinco/league-of-legends-stats-s13"
-          >https://www.kaggle.com/datasets/vivovinco/league-of-legends-stats-s13</a
-        ><br />
-        <a
-          href="https://www.kaggle.com/datasets/vivovinco/league-of-legends-champion-stats"
-          >https://www.kaggle.com/datasets/vivovinco/league-of-legends-champion-stats</a
-        >
-        <br />
-        The data from here comes from metasrc.com, a website which includes
-        further data from other patches not included in these two datasets.
-        Potentially, it would be cool to include all available patches in the
-        future.
+        The intricate world of League of Legends, with its burgeoning roster of
+        168 champions, presents an unparalleled balancing act. Through this
+        visualization project, we've peeled back layers of player perception to
+        uncover a core truth: the game is far more balanced than many players
+        are led to believe. Contrary to the fervor ignited by sensational
+        YouTube videos or stat-tracking websites, very few champions truly exist
+        as outliers on either end of the power spectrum.
       </p>
       <p>
-        2. I want to try my hand at adding a visualization showing the highest
-        winrate champion of a role on a map of the game (so if Urgot is the
-        highest winrate in the top lane, I want to have a little bubble with his
-        pictures pointing at the top lane). Either way, adding animations and
-        making the website look and run smoother is probably going to be the
-        most challenging part of the design. For example, for the highlighted
-        slider, I want the bars to shift smoothly while the slider moves, so
-        that the highlighted bar of the champion can be followed with the eyes.
-        In order to communicate that a champion should be selected, all bars
-        should have their opacity lowered before a champion is selected and
-        highlighted (opacity back to 1).
+        What becomes evident is the developers' agility in fine-tuning this
+        complex ecosystem, ensuring that each champion maintains their role
+        without overwhelming the competitive landscape. Such responsiveness
+        underscores a commitment to diversity in gameplay, allowing for a
+        dynamic meta where every archetype finds its moment in the spotlight.
+        This adaptability refutes the notion of constant imbalance, illustrating
+        instead a game that evolves with its community.
       </p>
+      <p>
+        A common narrative positions certain champions as ubiquitously
+        "overpowered," leading to high ban rates influenced more by player
+        frustration than actual performance. Yet, our data reveals a discrepancy
+        between perception and reality, offering a perspective that champions
+        most often tagged as overpowered are, in fact, balanced within the
+        game's broader context. It's a testament to the nuanced strategy and
+        depth that League of Legends offers, standing in stark contrast to other
+        competitive games where character win rates exhibit far greater
+        variance.
+      </p>
+      <p>
+        This visualization journey invites the League community to reconsider
+        preconceptions about balance and champion viability. By providing a
+        clear, data-driven view of how champions fare across updates, we not
+        only celebrate the game's complexity but also advocate for a more
+        informed and less vitriolic dialogue among its players. The true
+        takeaway? In a game as complex and dynamic as League of Legends, balance
+        is not a static ideal but a continuously pursued goal, achieved more
+        often than the prevailing discourse might suggest. It's a reminder that,
+        even in a digital arena fraught with contention, understanding and
+        appreciation can emerge from the chaos.
+      </p>
+    </div>
+    <div class="credits" style="margin: 0 100px">
+      <p>Data from:</p>
+      <a
+        href="https://www.kaggle.com/datasets/vivovinco/league-of-legends-stats-s13"
+        style="color: #9ecfff"
+      >
+        >https://www.kaggle.com/datasets/vivovinco/league-of-legends-stats-s13</a
+      ><br />
+      <a
+        href="https://www.kaggle.com/datasets/vivovinco/league-of-legends-champion-stats"
+        style="color: #9ecfff"
+      >
+        >https://www.kaggle.com/datasets/vivovinco/league-of-legends-champion-stats</a
+      >
     </div>
 
     <script src="script.js"></script>

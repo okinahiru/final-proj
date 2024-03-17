@@ -35,29 +35,32 @@ function drawFirstGraph(patch, role) {
     if (role !== "All") {
       filteredData = filteredData.filter((d) => d.Role === role);
     }
+
     const aggregatedData = d3.rollup(
       filteredData,
-      (v) => {
-        const totalWeight = d3.sum(v, (d) => d["Role %"]);
-        const weightedSum = d3.sum(v, (d) => d["Win %"] * d["Role %"]);
-        return weightedSum / totalWeight;
-      },
+      (v) =>
+        d3.sum(v, (d) => d["Win %"] * d["Role %"]) /
+        d3.sum(v, (d) => d["Role %"]),
       (d) => d.Name
     );
-    const dataArray = Array.from(aggregatedData, ([key, value]) => ({
-      Name: key,
-      avgWinRate: value,
-    }));
-    dataArray.sort((a, b) => d3.descending(a.avgWinRate, b.avgWinRate));
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 100 },
-      width = 1200 - margin.left - margin.right,
-      height = 1300 - margin.top - margin.bottom;
+    const dataArray = Array.from(aggregatedData, ([Name, avgWinRate]) => ({
+      Name,
+      avgWinRate,
+    })).sort((a, b) => d3.descending(a.avgWinRate, b.avgWinRate));
 
-    const x = d3.scaleLinear().range([0, width]);
-    const y = d3.scaleBand().range([height, 0]).padding(0.1);
-    x.domain([0, d3.max(dataArray, (d) => d.avgWinRate)]);
-    y.domain(dataArray.map((d) => d.Name));
+    const margin = { top: 20, right: 50, bottom: 50, left: 100 },
+      width = 1400 - margin.left - margin.right,
+      height = 1500 - margin.top - margin.bottom,
+      x = d3
+        .scaleLinear()
+        .domain([0, d3.max(dataArray, (d) => d.avgWinRate)])
+        .range([0, width]),
+      y = d3
+        .scaleBand()
+        .domain(dataArray.map((d) => d.Name))
+        .range([height, 0])
+        .padding(0.1);
 
     const svg = d3
       .select("#first-graph")
@@ -69,14 +72,29 @@ function drawFirstGraph(patch, role) {
 
     svg
       .selectAll(".bar")
-      .data(dataArray)
+      .data(dataArray, (d) => d.Name)
       .enter()
       .append("rect")
       .attr("class", "bar")
+      .attr("x", 0)
       .attr("width", (d) => x(d.avgWinRate))
       .attr("y", (d) => y(d.Name))
       .attr("height", y.bandwidth())
-      .attr("fill", "steelblue");
+      .attr("fill", (d) =>
+        Math.abs(d.avgWinRate - 50) > 3 ? "red" : "steelblue"
+      );
+
+    svg
+      .selectAll(".bar-label")
+      .data(dataArray, (d) => d.Name)
+      .enter()
+      .append("text")
+      .attr("class", "bar-label")
+      .attr("x", (d) => x(d.avgWinRate) - 3)
+      .attr("y", (d) => y(d.Name) + y.bandwidth() / 2)
+      .attr("dy", "0.35em")
+      .attr("text-anchor", "end")
+      .text((d) => d.avgWinRate.toFixed(2));
 
     svg
       .append("g")
@@ -86,14 +104,21 @@ function drawFirstGraph(patch, role) {
     svg.append("g").call(d3.axisLeft(y));
 
     svg
-      .selectAll(".bar-label")
-      .data(dataArray)
-      .enter()
       .append("text")
-      .attr("class", "bar-label")
-      .attr("x", (d) => x(d.avgWinRate) - 3)
-      .attr("y", (d) => y(d.Name) + y.bandwidth() / 2 + 4)
-      .text((d) => d.avgWinRate.toFixed(2));
+      .attr("text-anchor", "end")
+      .attr("x", width / 2 + 80)
+      .attr("y", height + margin.bottom / 2 + 10)
+      .text("AVERAGE WIN RATE (%)")
+      .style("fill", "var(--text-color)");
+
+    svg
+      .append("text")
+      .attr("text-anchor", "end")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -margin.left / 2 - 30)
+      .attr("x", -height / 2)
+      .text("CHAMPION")
+      .style("fill", "var(--text-color)");
   });
 }
 
@@ -123,9 +148,9 @@ function drawSecondGraph(patch, championName = "") {
     }));
     dataArray.sort((a, b) => d3.descending(a.avgWinRate, b.avgWinRate));
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 100 },
-      width = 1200 - margin.left - margin.right,
-      height = 1300 - margin.top - margin.bottom;
+    const margin = { top: 20, right: 20, bottom: 50, left: 100 },
+      width = 1400 - margin.left - margin.right,
+      height = 1500 - margin.top - margin.bottom;
 
     const x = d3.scaleLinear().range([0, width]);
     const y = d3.scaleBand().range([height, 0]).padding(0.1);
@@ -172,6 +197,23 @@ function drawSecondGraph(patch, championName = "") {
       .attr("x", (d) => x(d.avgWinRate) - 3)
       .attr("y", (d) => y(d.Name) + y.bandwidth() / 2 + 4)
       .text((d) => d.avgWinRate.toFixed(2));
+
+    svg
+      .append("text")
+      .attr("text-anchor", "end")
+      .attr("x", width / 2 + 80)
+      .attr("y", height + margin.bottom / 2 + 10)
+      .text("AVERAGE WIN RATE (%)")
+      .style("fill", "var(--text-color)");
+
+    svg
+      .append("text")
+      .attr("text-anchor", "end")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -margin.left / 2 - 30)
+      .attr("x", -height / 2)
+      .text("CHAMPION")
+      .style("fill", "var(--text-color)");
   });
 }
 
@@ -213,7 +255,7 @@ function drawThirdGraph(patch) {
       avgWinRate,
     })).sort((a, b) => d3.descending(a.avgWinRate, b.avgWinRate));
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 100 },
+    const margin = { top: 20, right: 20, bottom: 50, left: 100 },
       width = 960 - margin.left - margin.right,
       height = 500 - margin.top - margin.bottom;
 
@@ -255,6 +297,23 @@ function drawThirdGraph(patch) {
       .call(d3.axisBottom(x));
 
     svg.append("g").attr("class", "y axis").call(d3.axisLeft(y));
+
+    svg
+      .append("text")
+      .attr("text-anchor", "end")
+      .attr("x", width / 2 + 80)
+      .attr("y", height + margin.bottom / 2 + 20)
+      .text("AVERAGE WIN RATE (%)")
+      .style("fill", "var(--text-color)");
+
+    svg
+      .append("text")
+      .attr("text-anchor", "end")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -margin.left / 2 - 30)
+      .attr("x", -height / 2)
+      .text("CLASS")
+      .style("fill", "var(--text-color)");
   });
 }
 
@@ -280,7 +339,7 @@ function drawFourthGraph(selectedPatch) {
       avgBanRate: values.avgBanRate,
     }));
 
-    const margin = { top: 20, right: 20, bottom: 30, left: 40 },
+    const margin = { top: 20, right: 20, bottom: 60, left: 60 },
       width = 1000 - margin.left - margin.right,
       height = 1000 - margin.top - margin.bottom;
 
@@ -304,6 +363,23 @@ function drawFourthGraph(selectedPatch) {
         d3.max(processedData, (d) => d.avgWinRate) * 1.05,
       ])
       .range([height, 0]);
+
+    svg
+      .append("text")
+      .attr("text-anchor", "end")
+      .attr("x", width / 2 + margin.left)
+      .attr("y", height + margin.bottom - 15)
+      .text("AVERAGE BAN RATE (%)")
+      .style("fill", "var(--text-color)");
+
+    svg
+      .append("text")
+      .attr("text-anchor", "end")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -margin.left + 20)
+      .attr("x", -height / 2 + margin.top)
+      .text("AVERAGE WIN RATE (%)")
+      .style("fill", "var(--text-color)");
 
     svg
       .selectAll("dot")
@@ -393,7 +469,7 @@ function initializeGlobalPatchSlider() {
 
     const updateContent = () => {
       const selectedPatch = patches[globalPatchSlider.value];
-      selectedPatchDisplay.textContent = `Selected Patch: ${selectedPatch}`;
+      selectedPatchDisplay.textContent = `SELECTED PATCH: ${selectedPatch}`;
       updateAllGraphs(selectedPatch);
       populateChampionSuggestions(selectedPatch);
     };
